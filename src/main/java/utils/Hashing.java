@@ -38,6 +38,14 @@ public final class Hashing {
   }
 
   // TODO: You should add a salt and make this secure
+
+  public static String shaWithSalt (String password){
+    String salt = "gergrei34t98ger";
+    String hashedPassword = password + salt;
+    return sha(hashedPassword);
+  }
+
+
   public static String sha(String rawString) {
     try {
       // We load the hashing algoritm we wish to use.
