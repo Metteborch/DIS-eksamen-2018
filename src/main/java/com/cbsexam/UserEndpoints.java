@@ -97,18 +97,33 @@ public class UserEndpoints {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response loginUser(String x) {
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(400).entity("Endpoint not implemented yet").build();
+    User loginUser = new Gson().fromJson(x, User.class);
+
+    User databaseUser = UserController.getUserByemail(loginUser.getEmail());
+
+    if (loginUser == databaseUser) {
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(databaseUser).build();
+    } else {
+      return Response.status(400).entity("Endpoint not implemented yet").build();
+    }
   }
 
   // TODO: Make the system able to delete users
-  public Response deleteUser(String x) {
+  @POST
+  @Path("/delete/{idUser}")
+  public Response deleteUser( @PathParam("idUser") int id){
+
+    //Here we call the delete method in the userController and sends an ID as parameter
+    UserController.delete(id);
+
 
     // Return a response with status 200 and JSON as type
     return Response.status(400).entity("Endpoint not implemented yet").build();
   }
 
-  // TODO: Make the system able to update users
+
+
+  // TODO: Make the system able to update users: FIXED
   public Response updateUser(String x) {
 
     // Return a response with status 200 and JSON as type
