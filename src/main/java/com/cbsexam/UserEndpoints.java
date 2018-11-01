@@ -36,8 +36,14 @@ public class UserEndpoints {
     json = Encryption.encryptDecryptXOR(json);
 
     // Return the user with the status code 200
-    // TODO: What should happen if something breaks down?
-    return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+    // TODO: What should happen if something breaks down? FIXED
+    //If the user is not null, the program will be running as planned
+    if (user != null) {
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+      //If the user is null, then there will be returned an error 400 (bad request error).
+    } else {
+      return Response.status(400).entity("Could not find the user - please try again").build();
+    }
   }
 
   /** @return Responses */
@@ -55,8 +61,8 @@ public class UserEndpoints {
     // Transfer users to json in order to return it to the user
     String json = new Gson().toJson(users);
 
-    // We add encryption to rawString via the method encryptDecryptXOR method with a given parameter
-    //json = Encryption.encryptDecryptXOR(json);
+    //We add encryption to rawString via the method encryptDecryptXOR method with a given parameter
+    json = Encryption.encryptDecryptXOR(json);
 
     // Return the users with the status code 200
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
