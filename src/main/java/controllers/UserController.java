@@ -95,8 +95,8 @@ public class UserController {
     // Return the list of users
     return users;
   }
-
-  public static User getUserByemail(String email) {
+  // This method is used by the login method in UserEndpoints.
+  public static User login(User u) {
 
     // Check for connection
     if (dbCon == null) {
@@ -104,7 +104,7 @@ public class UserController {
     }
 
     // Build the query for DB
-    String sql = "SELECT * FROM user where email=" + email;
+    String sql = "SELECT * FROM user where email='" + u.getEmail() + "' AND password='" + Hashing.shaWithSalt(u.getPassword())+"'";
 
     // Actually do the query
     ResultSet rs = dbCon.query(sql);
@@ -174,17 +174,16 @@ public class UserController {
     return user;
   }
 
-  public static void delete(int id) {
+  public static boolean deleteUser(int id) {
 
     Log.writeLog(UserController.class.getName(), id, "Actually deleting a user in DB", 0);
 
-    if (dbCon == null){
-    dbCon = new DatabaseController();
+    if (dbCon == null) {
+      dbCon = new DatabaseController();
     }
 
-    String sql = "DELETE FROM user WHERE id =" + id;
+    User user = UserController.getUser(id);
 
-    dbCon.deleteUpdate(sql);
-
+    return user != null && dbCon.deleteUpdate("DELETE FROM user WHERE id = " + id);
   }
 }
