@@ -1,6 +1,9 @@
 package com.cbsexam;
 
 import cache.UserCache;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import controllers.UserController;
 import java.util.ArrayList;
@@ -91,7 +94,7 @@ public class UserEndpoints {
     }
   }
 
-  // TODO: Make the system able to login users and assign them a token to use throughout the system.
+  // TODO: Make the system able to login users and assign them a token to use throughout the system. FIXED WITHOUT TOKEN
   @POST
   @Path("/login")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -101,14 +104,16 @@ public class UserEndpoints {
 
     User databaseUser = UserController.login(loginUser);
 
-    if (loginUser == databaseUser) {
-      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(databaseUser).build();
+    String json = new Gson().toJson(databaseUser);
+
+    if (loginUser.getEmail().equals(databaseUser.getEmail())) {
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
     } else {
       return Response.status(400).entity("Endpoint not implemented yet").build();
     }
   }
 
-  // TODO: Make the system able to deleteUser users - ALMOST FIXED
+  // TODO: Make the system able to deleteUser users - FIXED
   @DELETE
   @Path("delete/{idUser}")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -129,7 +134,26 @@ public class UserEndpoints {
 
 
   // TODO: Make the system able to update users
-  public Response updateUser(String x) {
+  @POST
+  @Path("/update")
+  public Response updateUser(String updateInformation) {
+
+    User userInfo = new Gson().fromJson(updateInformation, User.class);
+
+    DecodedJWT token = null;
+
+    try{
+      token = JWT.decode(userInfo.getToken());
+    } catch(JWTDecodeException e) {
+     //Her skal der stå noget kode. Måske printe stacktrace
+    }
+
+    User userToUpdate = new Gson().fromJson(token.getClaim("userJson").asString(), User.class);
+
+    UserController.updateUser(userInfo, userToUpdate);
+
+    userCache.getUsers(true);
+
 
     // Return a response with status 200 and JSON as type
     return Response.status(400).entity("Endpoint not implemented yet").build();

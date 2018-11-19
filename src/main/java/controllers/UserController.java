@@ -3,6 +3,10 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.google.gson.Gson;
 import model.User;
 import utils.Hashing;
 import utils.Log;
@@ -121,10 +125,15 @@ public class UserController {
                         rs.getString("password"),
                         rs.getString("email"));
 
+        String json = new Gson().toJson(user);
+        Algorithm algorithm = Algorithm.HMAC256("Hemmelignøgle");
+        String token = JWT.create().withClaim("userJson", json).sign(algorithm);
+        user.setToken(token);
+
         // return the create object
         return user;
       } else {
-        System.out.println("No user found");
+        System.out.println("No User found");
       }
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
@@ -185,5 +194,36 @@ public class UserController {
     User user = UserController.getUser(id);
 
     return user != null && dbCon.deleteUpdate("DELETE FROM user WHERE id = " + id);
+  }
+
+  public static boolean updateUser(User userInfo, User userToUpdate) {
+
+    if (dbCon == null){
+      dbCon = new DatabaseController();
+    }
+
+    if (userInfo.getFirstname() != null)
+      userToUpdate.setFirstname(userInfo.getFirstname());
+
+    if (userInfo.getLastname() != null)
+      userToUpdate.setLastname(userInfo.getLastname());
+
+
+    if (userInfo.getPassword() != null)
+      userToUpdate.setPassword(Hashing.shaWithSalt(userInfo.getPassword()));
+
+
+    if (userInfo.getEmail() != null)
+      userToUpdate.setEmail(userInfo.getEmail());
+
+    String sql = "UPDATE user set first_name = '" + userToUpdate.getFirstname() +
+                  "', last_name = '" + userToUpdate.getLastname() +
+                  "', password = '" + userToUpdate.getPassword() +
+                  "', email = '" + userToUpdate.getEmail() +
+                  "' WHERE id = '" + userToUpdate.getId();
+
+    dbCon.deleteUpdate(sql);
+
+    return true;
   }
 }
