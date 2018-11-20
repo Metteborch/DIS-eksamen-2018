@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import model.User;
 import utils.Hashing;
@@ -125,9 +127,8 @@ public class UserController {
                         rs.getString("password"),
                         rs.getString("email"));
 
-        String json = new Gson().toJson(user);
         Algorithm algorithm = Algorithm.HMAC256("Hemmelignøgle");
-        String token = JWT.create().withClaim("userJson", json).sign(algorithm);
+        String token = JWT.create().withClaim("userID", user.getId()).withClaim("exp", 3600).sign(algorithm);
         user.setToken(token);
 
         // return the create object
@@ -183,7 +184,16 @@ public class UserController {
     return user;
   }
 
-  public static boolean deleteUser(int id) {
+  public static boolean deleteUser(String token) {
+
+    DecodedJWT jwt = null;
+    try{
+      jwt = JWT.decode(token);
+    } catch(JWTDecodeException exception) {
+      // noget kode her
+    }
+
+    int id = jwt.getClaim("userID").asInt();
 
     Log.writeLog(UserController.class.getName(), id, "Actually deleting a user in DB", 0);
 
@@ -196,11 +206,22 @@ public class UserController {
     return user != null && dbCon.deleteUpdate("DELETE FROM user WHERE id = " + id);
   }
 
-  public static boolean updateUser(User userInfo, User userToUpdate) {
+  public static User updateUser(User userInfo) {
 
     if (dbCon == null){
       dbCon = new DatabaseController();
     }
+
+    DecodedJWT jwt = null;
+    try{
+      jwt = JWT.decode(userInfo.getToken());
+    } catch(JWTDecodeException exception) {
+      // noget kode her
+    }
+
+    int id = jwt.getClaim("userID").asInt();
+
+    User userToUpdate = getUser(id);
 
     if (userInfo.getFirstname() != null)
       userToUpdate.setFirstname(userInfo.getFirstname());
@@ -208,10 +229,8 @@ public class UserController {
     if (userInfo.getLastname() != null)
       userToUpdate.setLastname(userInfo.getLastname());
 
-
     if (userInfo.getPassword() != null)
       userToUpdate.setPassword(Hashing.shaWithSalt(userInfo.getPassword()));
-
 
     if (userInfo.getEmail() != null)
       userToUpdate.setEmail(userInfo.getEmail());
@@ -220,10 +239,10 @@ public class UserController {
                   "', last_name = '" + userToUpdate.getLastname() +
                   "', password = '" + userToUpdate.getPassword() +
                   "', email = '" + userToUpdate.getEmail() +
-                  "' WHERE id = '" + userToUpdate.getId();
+                  "' WHERE id = " + userToUpdate.getId();
 
     dbCon.deleteUpdate(sql);
 
-    return true;
+    return userToUpdate;
   }
 }

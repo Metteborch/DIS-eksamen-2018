@@ -106,7 +106,7 @@ public class UserEndpoints {
 
     String json = new Gson().toJson(databaseUser);
 
-    if (loginUser.getEmail().equals(databaseUser.getEmail())) {
+    if (databaseUser != null) {
       return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
     } else {
       return Response.status(400).entity("Endpoint not implemented yet").build();
@@ -115,18 +115,17 @@ public class UserEndpoints {
 
   // TODO: Make the system able to deleteUser users - FIXED
   @DELETE
-  @Path("delete/{idUser}")
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Response deleteUser( @PathParam("idUser") int id) {
+  @Path("delete/")
+  public Response deleteUser(String token) {
 
     //Here we call the deleteUser method in the userController and sends an ID as parameter
-    boolean delete = UserController.deleteUser(id);
+    boolean delete = UserController.deleteUser(token);
 
     //Updates the cache
     userCache.getUsers(true);
 
     if (delete) {
-      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(new Gson().toJson(id)).build();
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(new Gson().toJson("The user was succesfully deleted")).build();
     } else {
       return Response.status(400).entity("The user was not found").build();
     }
@@ -140,22 +139,16 @@ public class UserEndpoints {
 
     User userInfo = new Gson().fromJson(updateInformation, User.class);
 
-    DecodedJWT token = null;
-
-    try{
-      token = JWT.decode(userInfo.getToken());
-    } catch(JWTDecodeException e) {
-     //Her skal der stå noget kode. Måske printe stacktrace
-    }
-
-    User userToUpdate = new Gson().fromJson(token.getClaim("userJson").asString(), User.class);
-
-    UserController.updateUser(userInfo, userToUpdate);
+    User updatedUser = UserController.updateUser(userInfo);
+    String json = new Gson().toJson(updatedUser);
 
     userCache.getUsers(true);
 
-
     // Return a response with status 200 and JSON as type
-    return Response.status(400).entity("Endpoint not implemented yet").build();
+    if (updatedUser != null){
+      return Response.status(200).entity("Your new token and information is: " + json).build();
+    } else{
+      return Response.status(400).entity("Updated user was not found").build();
+    }
   }
 }
