@@ -44,7 +44,8 @@ public class UserController {
                 rs.getString("first_name"),
                 rs.getString("last_name"),
                 rs.getString("password"),
-                rs.getString("email"));
+                rs.getString("email"),
+                rs.getLong("created_at"));
 
         // return the create object
         return user;
@@ -57,7 +58,6 @@ public class UserController {
 
     // Return null
     return user;
-
 
   }
 
@@ -89,7 +89,8 @@ public class UserController {
                 rs.getString("first_name"),
                 rs.getString("last_name"),
                 rs.getString("password"),
-                rs.getString("email"));
+                rs.getString("email"),
+                rs.getLong("created_at"));
 
         // Add element to list
         users.add(user);
@@ -125,7 +126,8 @@ public class UserController {
                         rs.getString("first_name"),
                         rs.getString("last_name"),
                         rs.getString("password"),
-                        rs.getString("email"));
+                        rs.getString("email"),
+                        rs.getLong("created_at"));
 
         Algorithm algorithm = Algorithm.HMAC256("Hemmelignøgle");
         String token = JWT.create().withClaim("userID", user.getId()).withClaim("exp", 3600).sign(algorithm);
@@ -190,7 +192,8 @@ public class UserController {
     try{
       jwt = JWT.decode(token);
     } catch(JWTDecodeException exception) {
-      // noget kode her
+      System.out.print(exception.getMessage());
+      System.out.print(exception.getStackTrace());
     }
 
     int id = jwt.getClaim("userID").asInt();
@@ -216,7 +219,8 @@ public class UserController {
     try{
       jwt = JWT.decode(userInfo.getToken());
     } catch(JWTDecodeException exception) {
-      // noget kode her
+      System.out.print(exception.getMessage());
+      System.out.print(exception.getStackTrace());
     }
 
     int id = jwt.getClaim("userID").asInt();
