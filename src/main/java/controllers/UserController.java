@@ -130,7 +130,7 @@ public class UserController {
                         rs.getLong("created_at"));
 
         Algorithm algorithm = Algorithm.HMAC256("Hemmelignøgle");
-        String token = JWT.create().withClaim("userID", user.getId()).withClaim("exp", 3600).sign(algorithm);
+        String token = JWT.create().withClaim("userID", user.getId()).sign(algorithm);
         user.setToken(token);
 
         // return the create object

@@ -118,7 +118,7 @@ public class UserEndpoints {
   @Path("delete/")
   public Response deleteUser(String token) {
 
-    //Here we call the deleteUser method in the userController and sends an ID as parameter
+    //Here we call the deleteUser method in the userController and sends an token as parameter
     boolean delete = UserController.deleteUser(token);
 
     //Updates the cache
